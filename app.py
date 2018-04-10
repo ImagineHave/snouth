@@ -3,6 +3,7 @@ from flask_mail import Mail, Message
 import pymongo
 import random
 import string
+import os
 from datetime import datetime
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
@@ -10,19 +11,19 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 
 app = Flask(__name__)
 
-app.config['MAIL_SERVER']='smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'activation@imagine-have.xyz'
-app.config['MAIL_PASSWORD'] = 'HwyShrotalot2016'
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_SERVER']=os.environ['MAIL_SERVER']
+app.config['MAIL_PORT'] = os.environ['MAIL_PORT']
+app.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
+app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
+app.config['MAIL_USE_TLS'] = os.environ['MAIL_USE_TLS']
+app.config['MAIL_USE_SSL'] = os.environ['MAIL_USE_SSL']
 mail = Mail(app)
 
-app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
+app.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
 
 jwt = JWTManager(app)
 
-uri = 'mongodb://gateway:gateway4ih@ds227168.mlab.com:27168/userdb'
+uri = os.environ['MONGO_URI']
 client = pymongo.MongoClient(uri)
 db = client.get_default_database()
 
