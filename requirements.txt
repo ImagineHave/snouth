@@ -3,3 +3,4 @@ flask-sqlalchemy==2.1
 flask-mail
 pymongo
 flask-jwt-extended
+gunicorn
