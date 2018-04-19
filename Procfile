@@ -1,1 +1,1 @@
-web: gunicorn snouth:app
+web: gunicorn app:app
