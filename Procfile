@@ -1,1 +1,1 @@
-web: gunicorn app:app
+web: gunicorn snouth_package:snouth_instance
