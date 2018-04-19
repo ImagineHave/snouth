@@ -1,0 +1,1 @@
+from .snouth_module import snouth_instance

@@ -9,25 +9,25 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 
     
-app = Flask(__name__)
+snouth_instance = Flask(__name__)
 
-app.config['MAIL_SERVER']=os.environ['MAIL_SERVER']
-app.config['MAIL_PORT'] = os.environ['MAIL_PORT']
-app.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
-app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
-app.config['MAIL_USE_TLS'] = os.environ['MAIL_USE_TLS']
-app.config['MAIL_USE_SSL'] = os.environ['MAIL_USE_SSL']
-mail = Mail(app)
+snouth_instance.config['MAIL_SERVER']=os.environ['MAIL_SERVER']
+snouth_instance.config['MAIL_PORT'] = os.environ['MAIL_PORT']
+snouth_instance.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
+snouth_instance.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
+snouth_instance.config['MAIL_USE_TLS'] = os.environ['MAIL_USE_TLS']
+snouth_instance.config['MAIL_USE_SSL'] = os.environ['MAIL_USE_SSL']
+mail = Mail(snouth_instance)
 
-app.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
+snouth_instance.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
 
-jwt = JWTManager(app)
+jwt = JWTManager(snouth_instance)
 
 uri = os.environ['MONGO_URI']
 client = pymongo.MongoClient(uri)
 db = client.get_default_database()
 
-@app.route('/userRegistration', methods=['POST'])
+@snouth_instance.route('/userRegistration', methods=['POST'])
 def registerUser():
     dataDict = request.get_json()
     
@@ -49,7 +49,7 @@ def registerUser():
     
     return ('', 204)
 
-@app.route('/activation', methods=['GET'])
+@snouth_instance.route('/activation', methods=['GET'])
 def activateUser():
     email = request.args.get('em','')
     activationToken = request.args.get('at','')
@@ -74,7 +74,7 @@ def activateUser():
     
     return('', 202)
     
-@app.route('/userLogon', methods=['POST'])
+@snouth_instance.route('/userLogon', methods=['POST'])
 def login():
     dataDict = request.get_json()
     
@@ -104,7 +104,7 @@ def login():
     
     return(refreshToken,200) 
 
-@app.route('/refreshExchange', methods=['POST'])
+@snouth_instance.route('/refreshExchange', methods=['POST'])
 @jwt_refresh_token_required
 def getAccessTokenAndRefreshRefreshToken():
     
