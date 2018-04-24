@@ -15,7 +15,7 @@ snouth_instance.config['MAIL_SERVER']=os.environ['MAIL_SERVER']
 snouth_instance.config['MAIL_PORT'] = os.environ['MAIL_PORT']
 snouth_instance.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
 snouth_instance.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
-snouth_instance.config['MAIL_USE_TLS'] = True #os.environ['MAIL_USE_TLS']
+snouth_instance.config['MAIL_USE_TLS'] = os.environ['MAIL_USE_TLS']
 snouth_instance.config['MAIL_USE_SSL'] = os.environ['MAIL_USE_SSL']
 
 mail = Mail(snouth_instance)
@@ -126,12 +126,3 @@ def send_email(email, activationString):
 def generateActivationParameter():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=255))
 	
-    
-def authenticate(username, password):
-    user = db.users.find_one({"email":username})
-    if user and user['password'] == password:
-        return user
-
-def identity(payload):
-    user_id = payload['identity']    
-    return db.users.find_one({"email":user_id})
