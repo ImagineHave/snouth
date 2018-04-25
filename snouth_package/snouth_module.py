@@ -119,7 +119,7 @@ def getAccessTokenAndRefreshRefreshToken():
     
     
 def send_email(email, activationString):
-    msg = Message('Hello', sender = 'activation@imagine-have.xyz', recipients = [email])
+    msg = Message('Hello', sender = 'postmaster@sandbox24975759833748b691661a5098f12fdb.mailgun.org', recipients = [email])
     msg.body = "Hello Activation message sent from Flask-Mail with activation string http://localhost:5000/activation?em="+email+"&at="+activationString
     mail.send(msg)
 
