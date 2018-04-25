@@ -18,6 +18,9 @@ snouth_instance.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
 snouth_instance.config['MAIL_USE_TLS'] = os.environ['MAIL_USE_TLS']
 snouth_instance.config['MAIL_USE_SSL'] = os.environ['MAIL_USE_SSL']
 
+print(os.environ['MAIL_USER_TLS'])
+print(os.environ['MAIL_USER_SSL'])
+
 mail = Mail(snouth_instance)
 
 snouth_instance.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
