@@ -4,3 +4,4 @@ flask-mail
 pymongo
 flask-jwt-extended
 gunicorn
+python-3.6.4
