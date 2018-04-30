@@ -4,4 +4,3 @@ flask-mail
 pymongo
 flask-jwt-extended
 gunicorn
-python-3
