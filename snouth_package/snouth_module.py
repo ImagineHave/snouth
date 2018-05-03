@@ -7,6 +7,7 @@ import os
 from datetime import datetime
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
+import requests
 
     
 snouth_instance = Flask(__name__)
@@ -17,37 +18,33 @@ snouth_instance.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
 snouth_instance.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
 snouth_instance.config['MAIL_USE_TLS'] = os.environ['MAIL_USE_TLS']
 snouth_instance.config['MAIL_USE_SSL'] = os.environ['MAIL_USE_SSL']
-
-print(os.environ['MAIL_USE_TLS'])
-print(os.environ['MAIL_USE_SSL'])
+snouth_instance.config['MAILGUN_API_KEY'] = os.environ['MAILGUN_API_KEY']
+snouth_instance.config['MAILGUN_SANDBOX_URL'] = os.environ['MAILGUN_SANDBOX_URL']
+snouth_instance.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
+snouth_instance.config['MONGO_URI'] = os.environ['MONGO_URI']
 
 mail = Mail(snouth_instance)
-
-snouth_instance.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
-
 jwt = JWTManager(snouth_instance)
 
-uri = os.environ['MONGO_URI']
-client = pymongo.MongoClient(uri)
+client = pymongo.MongoClient(snouth_instance.config['MONGO_URI'])
 db = client.get_default_database()
+
 
 @snouth_instance.route('/userRegistration', methods=['POST'])
 def registerUser():
+    
     dataDict = request.get_json()
     
     email = dataDict['email']
     password = dataDict['password']
-    print(email)
-    print(password)
     activationString = generateActivationParameter()
-    print(activationString)
     
     db.users.insert({
         'email': email,
         'password': password,
         'created_time': datetime.utcnow(),
         'activation': activationString        
-        })     
+        })   
         
     send_email(email, activationString)
     
@@ -119,12 +116,20 @@ def getAccessTokenAndRefreshRefreshToken():
     refreshToken = create_refresh_token(identity = current_user)
     
     return jsonify({'access_token': access_token, 'refreshToken':refreshToken})
-    
-    
+        
 def send_email(email, activationString):
-    msg = Message('Hello', sender = 'postmaster@sandbox24975759833748b691661a5098f12fdb.mailgun.org', recipients = [email])
-    msg.body = "Hello Activation message sent from Flask-Mail with activation string http://localhost:5000/activation?em="+email+"&at="+activationString
-    mail.send(msg)
+    request_url = '{0}/messages'.format(snouth_instance.config['MAILGUN_SANDBOX_URL'])
+    request = requests.post(
+        request_url, 
+        auth=('api', snouth_instance.config['MAILGUN_API_KEY']),
+        data={'from':snouth_instance.config['MAIL_USERNAME'], 
+        'to':email, 
+        'subject':"Hello Activation message sent from Flask-Mail with activation string http://localhost:5000/activation?em="+email+"&at="+activationString, 
+        'text': 'Hello there'}
+        )
+    print(request.status_code)
+    print(request.text)
+    
 
 def generateActivationParameter():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=255))
