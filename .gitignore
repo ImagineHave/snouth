@@ -1,3 +1,4 @@
 snouth_package/bin
 snouth_package/include
 snouth_package/pip-selfcheck.json
+/snouth_package/__pycache__
