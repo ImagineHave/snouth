@@ -1,1 +1,1 @@
-from .snouth_module import snouth_instance
+from .snouth_module import app
