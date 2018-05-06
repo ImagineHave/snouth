@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from flask_mail import Mail, Message
 import pymongo
 import random
@@ -10,27 +10,45 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 import requests
 
     
-snouth_instance = Flask(__name__)
+app = Flask(__name__)
 
-snouth_instance.config['MAIL_SERVER']=os.environ['MAIL_SERVER']
-snouth_instance.config['MAIL_PORT'] = os.environ['MAIL_PORT']
-snouth_instance.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
-snouth_instance.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
-snouth_instance.config['MAIL_USE_TLS'] = os.environ['MAIL_USE_TLS']
-snouth_instance.config['MAIL_USE_SSL'] = os.environ['MAIL_USE_SSL']
-snouth_instance.config['MAILGUN_API_KEY'] = os.environ['MAILGUN_API_KEY']
-snouth_instance.config['MAILGUN_SANDBOX_URL'] = os.environ['MAILGUN_SANDBOX_URL']
-snouth_instance.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
-snouth_instance.config['MONGO_URI'] = os.environ['MONGO_URI']
-
-mail = Mail(snouth_instance)
-jwt = JWTManager(snouth_instance)
-
-client = pymongo.MongoClient(snouth_instance.config['MONGO_URI'])
-db = client.get_default_database()
+app.config.update(dict(
+    SECRET_KEY = os.environ['SECRET_KEY'],
+    MAIL_USERNAME = os.environ['MAIL_USERNAME'],
+    MAILGUN_API_KEY = os.environ['MAILGUN_API_KEY'],
+    MAILGUN_URL = os.environ['MAILGUN_URL'],
+    JWT_SECRET_KEY = os.environ['JWT_SECRET_KEY'],
+    MONGO_URI = os.environ['MONGO_URI']
+    ))
 
 
-@snouth_instance.route('/userRegistration', methods=['POST'])
+def getClient():
+    """get MongoClient."""
+    return pymongo.MongoClient(app.config['MONGO_URI'])
+    
+    
+def getDb():
+    """get DB"""
+    if not hasattr(g, 'db'):
+        g.db = getClient().get_default_database()
+    return g.db
+ 
+    
+def getMail():
+    """get Mail"""
+    if not hasattr(g, 'mail'):
+        g.mail = Mail(app)
+    return g.mail   
+    
+    
+def getJwtManager():
+    """get JWT Manager"""
+    if not hasattr(g, 'jwtmanager'):
+        g.jwtmanager = JWTManager(app)
+    return g.jwtmanager
+
+
+@app.route('/userRegistration', methods=['POST'])
 def registerUser():
     
     dataDict = request.get_json()
@@ -39,7 +57,7 @@ def registerUser():
     password = dataDict['password']
     activationString = generateActivationParameter()
     
-    db.users.insert({
+    getDb().users.insert({
         'email': email,
         'password': password,
         'created_time': datetime.utcnow(),
@@ -50,14 +68,14 @@ def registerUser():
     
     return ('', 204)
 
-@snouth_instance.route('/activation', methods=['GET'])
+@app.route('/activation', methods=['GET'])
 def activateUser():
     email = request.args.get('em','')
     activationToken = request.args.get('at','')
     
     query = {'email': email, 'activation': activationToken}
     
-    user = db.users.find_one(query)
+    user = getDb().users.find_one(query)
     
     print(user)
     
@@ -65,7 +83,7 @@ def activateUser():
         return ('', 401)
     
     
-    db.users.update_one({
+    getDb().users.update_one({
         '_id': user['_id']
     },{
         '$set': {
@@ -75,7 +93,7 @@ def activateUser():
     
     return('', 202)
     
-@snouth_instance.route('/userLogon', methods=['POST'])
+@app.route('/userLogon', methods=['POST'])
 def login():
     dataDict = request.get_json()
     
@@ -84,7 +102,7 @@ def login():
     
     query = {'email': email, 'password': password}
     
-    user = db.users.find_one(query)
+    user = getDb().users.find_one(query)
     
     print(user)
     
@@ -95,7 +113,7 @@ def login():
     print(identity)
     refreshToken = create_refresh_token(identity)
     
-    db.users.update_one({
+    getDb().users.update_one({
         '_id': user['_id']
     },{
         '$set': {
@@ -105,7 +123,7 @@ def login():
     
     return(refreshToken,200) 
 
-@snouth_instance.route('/refreshExchange', methods=['POST'])
+@app.route('/refreshExchange', methods=['POST'])
 @jwt_refresh_token_required
 def getAccessTokenAndRefreshRefreshToken():
     
@@ -118,11 +136,11 @@ def getAccessTokenAndRefreshRefreshToken():
     return jsonify({'access_token': access_token, 'refreshToken':refreshToken})
         
 def send_email(email, activationString):
-    request_url = '{0}/messages'.format(snouth_instance.config['MAILGUN_SANDBOX_URL'])
+    request_url = '{0}/messages'.format(app.config['MAILGUN_URL'])
     request = requests.post(
         request_url, 
-        auth=('api', snouth_instance.config['MAILGUN_API_KEY']),
-        data={'from':snouth_instance.config['MAIL_USERNAME'], 
+        auth=('api', app.config['MAILGUN_API_KEY']),
+        data={'from':app.config['MAIL_USERNAME'], 
         'to':email, 
         'subject':"Hello Activation message sent from Flask-Mail with activation string http://localhost:5000/activation?em="+email+"&at="+activationString, 
         'text': 'Hello there'}
