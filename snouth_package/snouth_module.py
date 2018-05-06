@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from flask_mail import Mail, Message
 import pymongo
 import random
@@ -21,11 +21,27 @@ app.config.update(dict(
     MONGO_URI = os.environ['MONGO_URI']
     ))
 
-mail = Mail(app)
-jwt = JWTManager(app)
-
-client = pymongo.MongoClient(app.config['MONGO_URI'])
-db = client.get_default_database()
+def getClient():
+    """get MongoClient."""
+    return pymongo.MongoClient(app.config['MONGO_URI'])
+    
+def getDb():
+    """get DB"""
+    if not hasattr(g, 'db'):
+        g.db = getClient().get_default_database()
+    return g.db
+    
+def getMail():
+    """get Mail"""
+    if not hasattr(g, 'mail'):
+        g.mail = Mail(app)
+    return g.db   
+    
+def getJwtManager():
+    """get JWT Manager"""
+    if not hasattr(g, 'jwtmanager'):
+        g.db = JWTManager(app)
+    return g.db
 
 
 @app.route('/userRegistration', methods=['POST'])
@@ -37,7 +53,7 @@ def registerUser():
     password = dataDict['password']
     activationString = generateActivationParameter()
     
-    db.users.insert({
+    getDb().users.insert({
         'email': email,
         'password': password,
         'created_time': datetime.utcnow(),
@@ -55,7 +71,7 @@ def activateUser():
     
     query = {'email': email, 'activation': activationToken}
     
-    user = db.users.find_one(query)
+    user = getDb().users.find_one(query)
     
     print(user)
     
@@ -63,7 +79,7 @@ def activateUser():
         return ('', 401)
     
     
-    db.users.update_one({
+    getDb().users.update_one({
         '_id': user['_id']
     },{
         '$set': {
@@ -82,7 +98,7 @@ def login():
     
     query = {'email': email, 'password': password}
     
-    user = db.users.find_one(query)
+    user = getDb().users.find_one(query)
     
     print(user)
     
@@ -93,7 +109,7 @@ def login():
     print(identity)
     refreshToken = create_refresh_token(identity)
     
-    db.users.update_one({
+    getDb().users.update_one({
         '_id': user['_id']
     },{
         '$set': {
