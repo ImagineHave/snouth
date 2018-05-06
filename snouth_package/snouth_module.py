@@ -21,27 +21,31 @@ app.config.update(dict(
     MONGO_URI = os.environ['MONGO_URI']
     ))
 
+
 def getClient():
     """get MongoClient."""
     return pymongo.MongoClient(app.config['MONGO_URI'])
+    
     
 def getDb():
     """get DB"""
     if not hasattr(g, 'db'):
         g.db = getClient().get_default_database()
     return g.db
+ 
     
 def getMail():
     """get Mail"""
     if not hasattr(g, 'mail'):
         g.mail = Mail(app)
-    return g.db   
+    return g.mail   
+    
     
 def getJwtManager():
     """get JWT Manager"""
     if not hasattr(g, 'jwtmanager'):
-        g.db = JWTManager(app)
-    return g.db
+        g.jwtmanager = JWTManager(app)
+    return g.jwtmanager
 
 
 @app.route('/userRegistration', methods=['POST'])
