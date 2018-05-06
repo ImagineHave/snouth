@@ -10,7 +10,7 @@
 import os
 import tempfile
 import pytest
-from snouth_package import snouth_module
+from snouth import snouth_module
 
 @pytest.fixture
 def client():
