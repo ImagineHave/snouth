@@ -1,3 +1,4 @@
 {
+  "tests/test_factory.py::test_hello": true,
   "tests/test_snouth.py": true
 }

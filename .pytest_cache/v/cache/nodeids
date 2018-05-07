@@ -1,1 +1,4 @@
-[]
+[
+  "tests/test_factory.py::test_config",
+  "tests/test_factory.py::test_hello"
+]
