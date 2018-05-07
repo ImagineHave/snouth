@@ -10,13 +10,13 @@
 import os
 import tempfile
 import pytest
-from snouth import snouth_module
+from snouth_package import app
 
 @pytest.fixture
 def client():
-    db_fd, snouth_module.snouth_instance.config['DATABASE'] = tempfile.mkstemp()
+    db_fd, snouth_module.app.config['DATABASE'] = tempfile.mkstemp()
     snouth_module.snouth_instance.config['TESTING'] = True
-    client = snouth_module.snouth_instance.test_client()
+    client = snouth_module.app.test_client()
 
     with snouth_module.snouth_instance.app_context():
         snouth_module.init_db()

@@ -12,6 +12,7 @@ import requests
     
 app = Flask(__name__)
 
+
 app.config.update(dict(
     SECRET_KEY = os.environ['SECRET_KEY'],
     MAIL_USERNAME = os.environ['MAIL_USERNAME'],
@@ -32,13 +33,6 @@ def getDb():
     if not hasattr(g, 'db'):
         g.db = getClient().get_default_database()
     return g.db
- 
-    
-def getMail():
-    """get Mail"""
-    if not hasattr(g, 'mail'):
-        g.mail = Mail(app)
-    return g.mail   
     
     
 def getJwtManager():
