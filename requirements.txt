@@ -3,3 +3,4 @@ flask-sqlalchemy==2.1
 pymongo
 flask-jwt-extended
 gunicorn
+requests
