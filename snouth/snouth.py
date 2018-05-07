@@ -34,7 +34,6 @@ def send_email(email, activationString):
 @bp.route('/userRegistration', methods=['POST'])
 def registerUser():
     
-    print(request)
     dataDict = request.get_json()
     email = dataDict['email']
     password = dataDict['password']

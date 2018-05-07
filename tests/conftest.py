@@ -19,13 +19,13 @@ def app():
     
     app = create_app({
         'TESTING': True,
-        'SECRET_KEY' : "secret",
-        'MAIL_USERNAME' : "mail username",
-        'MAILGUN_API_KEY' : "mail api key",
-        'MAILGUN_URL' : "mail url",
-        'JWT_SECRET_KEY' : "jwt secret",
-        'MONGO_URI' : os.environ['TEST_URI'],
-        'DOMAIN' : "domain"
+        'SECRET_KEY' : os.environ['SECRET_KEY'],
+        'MAIL_USERNAME' : os.environ['MAIL_USERNAME'],
+        'MAILGUN_API_KEY' : os.environ['MAILGUN_API_KEY'],
+        'MAILGUN_URL' : os.environ['MAILGUN_URL'],
+        'JWT_SECRET_KEY' : os.environ['JWT_SECRET_KEY'],
+        'MONGO_URI' : os.environ['MONGO_URI'],
+        'DOMAIN' : os.environ['DOMAIN']
     })
     
     with app.app_context():
