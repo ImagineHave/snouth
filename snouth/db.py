@@ -29,7 +29,7 @@ def init_db():
     db = get_db()
     collections = db.collection_names(include_system_collections=False)
     for collection in collections:
-        collection.drop()
+        db[collection].drop()
 
 
 @click.command('init-db')

@@ -24,7 +24,7 @@ def app():
         'MAILGUN_API_KEY' : "mail api key",
         'MAILGUN_URL' : "mail url",
         'JWT_SECRET_KEY' : "jwt secret",
-        'MONGO_URI' : mockupDbServer.uri,
+        'MONGO_URI' : os.environ['TEST_URI'],
         'DOMAIN' : "domain"
     })
     
@@ -32,9 +32,6 @@ def app():
         init_db()
         
     yield client
-    
-    mockupDbServer.stop()
-
     
 @pytest.fixture
 def client(app):
