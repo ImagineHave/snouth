@@ -1,1 +1,1 @@
-web: gunicorn snouth:snouth
+web: gunicorn "snouth:create_app()"
