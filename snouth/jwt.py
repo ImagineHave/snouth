@@ -3,6 +3,6 @@ from flask import current_app, g
 
 def init_app(app):
     """get JWT Manager"""
-    if not hasattr(g, 'jwtmanager'):
+    with app.app_context():
         g.jwtmanager = JWTManager(app)
-    return g.jwtmanager
+        return g.jwtmanager
