@@ -1,1 +1,0 @@
-from .snouth_module import app

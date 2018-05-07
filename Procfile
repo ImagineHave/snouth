@@ -1,1 +1,1 @@
-web: gunicorn snouth_package:snouth_instance
+web: gunicorn snouth:snouth
