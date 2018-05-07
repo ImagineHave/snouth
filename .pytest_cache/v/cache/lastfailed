@@ -1,4 +1,3 @@
 {
-  "tests/test_factory.py::test_hello": true,
-  "tests/test_snouth.py": true
+  "tests/test_snouth.py::test_registerUser": true
 }

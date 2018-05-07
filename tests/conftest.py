@@ -31,7 +31,7 @@ def app():
     with app.app_context():
         init_db()
         
-    yield client
+    yield app
     
 @pytest.fixture
 def client(app):
