@@ -21,8 +21,8 @@ def send_email(email, activationString):
         auth=('api', current_app.config['MAILGUN_API_KEY']),
         data={'from':current_app.config['MAIL_USERNAME'], 
         'to':email, 
-        'subject':"Hello Activation message sent from Flask-Mail with activation string https://"+current_app.config['DOMAIN']+"/snouth/activation?em="+email+"&at="+activationString, 
-        'text': 'Hello there'}
+        'subject':"Activation link", 
+        'text': 'https://'+current_app.config['DOMAIN']+'/snouth/activation?em='+email+'&at='+activationString}
         )
     print("----")
     print("send mail response:")
@@ -45,7 +45,7 @@ def registerUser():
         'email': email,
         'password': password,
         'created_time': datetime.utcnow(),
-        'activation': activationString        
+        'activationString': activationString        
         })   
         
     send_email(email, activationString)
@@ -55,11 +55,13 @@ def registerUser():
 @bp.route('/activation', methods=['GET'])
 def activateUser():
     email = request.args.get('em','')
-    activationToken = request.args.get('at','')
+    activation = request.args.get('at','')
     db = get_db()
     
-    query = {'email': email, 'activation': activationToken}
+    print(email)
+    print(activation)
     
+    query = {'email': email, 'activation': activation}
     user = db.users.find_one(query)
     
     print(user)

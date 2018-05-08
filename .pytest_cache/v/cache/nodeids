@@ -1,5 +1,6 @@
 [
   "tests/test_factory.py::test_config",
   "tests/test_factory.py::test_hello",
-  "tests/test_snouth.py::test_registerUser"
+  "tests/test_snouth.py::test_registerUser",
+  "tests/test_snouth.py::test_activation"
 ]
