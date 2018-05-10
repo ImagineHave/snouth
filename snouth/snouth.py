@@ -109,7 +109,7 @@ def login():
         }
     }, upsert=False)
     
-    return(refreshToken,200) 
+    return jsonify({'refreshToken':refreshToken})
     
 @bp.route('/refreshExchange', methods=['POST'])
 @jwt_refresh_token_required

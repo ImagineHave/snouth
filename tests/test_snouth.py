@@ -13,6 +13,9 @@ def activation(client, app, email, activation):
 def registerUser(client, email, password):
     return client.post('/snouth/userRegistration', data=json.dumps(dict(email=email, password=password)), content_type='application/json')
     
+def userLogon(client, email, password):
+    return client.post('/snouth/userLogon', data=json.dumps(dict(email=email, password=password)), content_type='application/json')
+    
 def convertDateTime(ts):
     return datetime.fromtimestamp(ts)
 
@@ -55,4 +58,27 @@ def test_activation(client, app):
         user = db.users.find_one(query)
         print(user)
         assert user['activation'] == True
+        
+def test_userLogon(client, app):
+    email = 'activation@imagine-have.xyz'
+    password = 'password'
+    activated = True
+    
+    # register
+    with app.app_context():
+        db = get_db()
+        db.users.insert({
+        'email': email,
+        'password': password,
+        'activation': activated        
+        }) 
+        
+        appResponse = userLogon(client, email, password)
+        jsonResponse = json.loads(appResponse.get_data(as_text=True))
+        print (jsonResponse)
+        
+        assert appResponse.status_code == 200
+        assert len(jsonResponse['refreshToken']) > 0
+
+def test_refreshExchange(client, app):
     
