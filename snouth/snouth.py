@@ -118,7 +118,7 @@ def getAccessTokenAndRefreshRefreshToken():
     print(get_jwt_identity())
     current_user = get_jwt_identity()
     print(current_user)
-    access_token = create_access_token(identity = current_user)
+    accessToken = create_access_token(identity = current_user)
     refreshToken = create_refresh_token(identity = current_user)
     
-    return jsonify({'access_token': access_token, 'refreshToken':refreshToken})
+    return jsonify({'accessToken': accessToken, 'refreshToken':refreshToken})
