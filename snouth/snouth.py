@@ -1,6 +1,4 @@
-from .db import get_db
 from flask import Blueprint, g, request, current_app, request, jsonify
-from datetime import datetime
 from .useraccess import find_user_by_email_and_activation, activate_user, create_user, find_user_by_email_and_password, set_user_refreshtoken
 import requests
 import random
@@ -37,7 +35,6 @@ def registerUser():
     dataDict = request.get_json()
     email = dataDict['email']
     password = dataDict['password']
-    db = get_db()
     
     activation_string = generateActivationParameter()
     
@@ -51,7 +48,6 @@ def registerUser():
 def activateUser():
     email = request.args.get('em','')
     activation = request.args.get('at','')
-    db = get_db()
     
     print(email)
     print(activation)
