@@ -24,6 +24,8 @@ def app():
         'MAILGUN_API_KEY' : os.environ['MAILGUN_API_KEY'],
         'MAILGUN_URL' : os.environ['MAILGUN_URL'],
         'JWT_SECRET_KEY' : os.environ['JWT_SECRET_KEY'],
+        'JWT_BLACKLIST_ENABLED': True,
+        'JWT_BLACKLIST_TOKEN_CHECKS': ['refresh'],
         'MONGO_URI' : os.environ['MONGO_URI'],
         'DOMAIN' : os.environ['DOMAIN']
     })

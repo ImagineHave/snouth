@@ -19,6 +19,10 @@ def userLogon(client, email, password):
 def refreshExchange(client, refreshToken):
     headers = {'Authorization': 'Bearer ' + refreshToken, 'content_type':'application/json'}
     return client.post('/snouth/refreshExchange', data=json.dumps(dict(refreshToken=refreshToken)), headers= headers)
+    
+def blacklistRefreshToken(client, refreshToken):
+    headers = {'Authorization': 'Bearer ' + refreshToken, 'content_type':'application/json'}
+    return client.post('/snouth/blacklist', headers=headers, content_type='application/json')    
 
 def convertDateTime(ts):
     return datetime.fromtimestamp(ts)
@@ -91,3 +95,16 @@ def test_refreshExchange(client, app):
     assert appResponse.status_code == 200
     assert len(jsonResponse['refreshToken']) > 0
     assert len(jsonResponse['accessToken']) > 0
+
+def test_blacklistRefreshToken(client, app):
+    refreshToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1MjQyNDkxMTMsIm5iZiI6MTUyNDI0OTExMywianRpIjoiMjBiMTNhNzMtY2ZhMy00Y2E1LTlhZGItMzkzZmJkYmIzMDVmIiwiZXhwIjoxNTI2ODQxMTEzLCJpZGVudGl0eSI6eyJlbWFpbCI6Im95dmluZC53b2xsZXJAaW1hZ2luZS1oYXZlLnh5eiIsInBhc3N3b3JkIjoieDRkc2QyZHM0In0sInR5cGUiOiJyZWZyZXNoIn0.KsXQ0HabM8uLoKX5GYDPh6GdDeTf3HFVgUIKMR03VaE"
+    
+    #call app.blacklist refreshtoken
+    blacklistRefreshToken(client, refreshToken)
+    
+    # call refreshexchange
+    appResponse = refreshExchange(client, refreshToken)
+    jsonResponse = json.loads(appResponse.get_data(as_text=True))
+    #verify "blacklisted" response
+    assert jsonResponse['msg'] == 'Token has been revoked'
+    assert appResponse.status_code == 401

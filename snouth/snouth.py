@@ -1,5 +1,6 @@
-from flask import Blueprint, g, request, current_app, request, jsonify
+from flask import Blueprint, request, current_app, request, jsonify
 from .useraccess import find_user_by_email_and_activation, activate_user, create_user, find_user_by_email_and_password, set_user_refreshtoken
+from .blacklistaccess import insert_blacklist
 import requests
 import random
 import string
@@ -7,12 +8,11 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 
 bp = Blueprint('snouth', __name__, url_prefix='/snouth')
 
-
 def generateActivationParameter():
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(255))
 
 
-def send_email(email, activationString):
+def send_activation_email(email, activationString):
     request_url = '{0}/messages'.format(current_app.config['MAILGUN_URL'])
     response = requests.post(
         request_url, 
@@ -40,7 +40,7 @@ def registerUser():
     
     create_user(email, password, activation_string)
    
-    send_email(email, activation_string)
+    send_activation_email(email, activation_string)
     
     return ('', 204)
     
@@ -79,6 +79,7 @@ def login():
     
     identity = {"email":user['email'], "password":user['password']}
     print(identity)
+    print(user)
     refreshToken = create_refresh_token(identity)
     
     set_user_refreshtoken(user, refreshToken)
@@ -89,10 +90,18 @@ def login():
 @jwt_refresh_token_required
 def getAccessTokenAndRefreshRefreshToken():
     
-    print(get_jwt_identity())
+    print('jwt identity ',get_jwt_identity())
     current_user = get_jwt_identity()
-    print(current_user)
+    print('current user', current_user)
     accessToken = create_access_token(identity = current_user)
     refreshToken = create_refresh_token(identity = current_user)
     
     return jsonify({'accessToken': accessToken, 'refreshToken':refreshToken})
+    
+@bp.route('/blacklist', methods=['POST'])
+@jwt_refresh_token_required
+def blacklistRefreshToken():
+    jti = get_raw_jwt()['jti']
+    print ('jti ', jti)
+    insert_blacklist(jti)
+    return ('', 200)
