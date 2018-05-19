@@ -1,7 +1,7 @@
 from .db import get_db
 from flask import Blueprint, g, request, current_app, request, jsonify
 from datetime import datetime
-from werkzeug.security import check_password_hash, generate_password_hash
+from .useraccess import find_user_by_email_and_activation, activate_user, create_user, find_user_by_email_and_password, set_user_refreshtoken
 import requests
 import random
 import string
@@ -39,16 +39,11 @@ def registerUser():
     password = dataDict['password']
     db = get_db()
     
-    activationString = generateActivationParameter()
+    activation_string = generateActivationParameter()
     
-    db.users.insert({
-        'email': email,
-        'password': password,
-        'created_time': datetime.utcnow(),
-        'activationString': activationString        
-        })   
-        
-    send_email(email, activationString)
+    create_user(email, password, activation_string)
+   
+    send_email(email, activation_string)
     
     return ('', 204)
     
@@ -61,22 +56,14 @@ def activateUser():
     print(email)
     print(activation)
     
-    query = {'email': email, 'activation': activation}
-    user = db.users.find_one(query)
+    user = find_user_by_email_and_activation(email, activation)
     
     print(user)
     
     if not user:
         return ('', 401)
     
-    
-    db.users.update_one({
-        '_id': user['_id']
-    },{
-        '$set': {
-            'activation': True
-        }
-    }, upsert=False)
+    activate_user(user)
     
     return('', 202)
     
@@ -87,10 +74,7 @@ def login():
     email = dataDict['email']
     password = dataDict['password']
     
-    query = {'email': email, 'password': password}
-    
-    db = get_db()
-    user = db.users.find_one(query)
+    user = find_user_by_email_and_password(email, password)
     
     print(user)
     
@@ -101,15 +85,9 @@ def login():
     print(identity)
     refreshToken = create_refresh_token(identity)
     
-    db.users.update_one({
-        '_id': user['_id']
-    },{
-        '$set': {
-            'refreshToken': refreshToken
-        }
-    }, upsert=False)
+    set_user_refreshtoken(user, refreshToken)
     
-    return jsonify({'refreshToken':refreshToken})
+    return jsonify({'refreshToken': refreshToken})
     
 @bp.route('/refreshExchange', methods=['POST'])
 @jwt_refresh_token_required
