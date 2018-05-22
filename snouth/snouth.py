@@ -1,7 +1,6 @@
-from .db import get_db
-from flask import Blueprint, g, request, current_app, request, jsonify
-from datetime import datetime
-from werkzeug.security import check_password_hash, generate_password_hash
+from flask import Blueprint, request, current_app, request, jsonify
+from .useraccess import find_user_by_email_and_activation, activate_user, create_user, find_user_by_email_and_password, set_user_refreshtoken
+from .blacklistaccess import insert_blacklist
 import requests
 import random
 import string
@@ -9,20 +8,19 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 
 bp = Blueprint('snouth', __name__, url_prefix='/snouth')
 
-
 def generateActivationParameter():
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(255))
 
 
-def send_email(email, activationString):
+def send_activation_email(email, activationString):
     request_url = '{0}/messages'.format(current_app.config['MAILGUN_URL'])
     response = requests.post(
         request_url, 
         auth=('api', current_app.config['MAILGUN_API_KEY']),
         data={'from':current_app.config['MAIL_USERNAME'], 
         'to':email, 
-        'subject':"Hello Activation message sent from Flask-Mail with activation string https://"+current_app.config['DOMAIN']+"/snouth/activation?em="+email+"&at="+activationString, 
-        'text': 'Hello there'}
+        'subject':"Activation link", 
+        'text': 'https://'+current_app.config['DOMAIN']+'/snouth/activation?em='+email+'&at='+activationString}
         )
     print("----")
     print("send mail response:")
@@ -37,44 +35,31 @@ def registerUser():
     dataDict = request.get_json()
     email = dataDict['email']
     password = dataDict['password']
-    db = get_db()
     
-    activationString = generateActivationParameter()
+    activation_string = generateActivationParameter()
     
-    db.users.insert({
-        'email': email,
-        'password': password,
-        'created_time': datetime.utcnow(),
-        'activation': activationString        
-        })   
-        
-    send_email(email, activationString)
+    create_user(email, password, activation_string)
+   
+    send_activation_email(email, activation_string)
     
     return ('', 204)
     
 @bp.route('/activation', methods=['GET'])
 def activateUser():
     email = request.args.get('em','')
-    activationToken = request.args.get('at','')
-    db = get_db()
+    activation = request.args.get('at','')
     
-    query = {'email': email, 'activation': activationToken}
+    print(email)
+    print(activation)
     
-    user = db.users.find_one(query)
+    user = find_user_by_email_and_activation(email, activation)
     
     print(user)
     
     if not user:
         return ('', 401)
     
-    
-    db.users.update_one({
-        '_id': user['_id']
-    },{
-        '$set': {
-            'activation': True
-        }
-    }, upsert=False)
+    activate_user(user)
     
     return('', 202)
     
@@ -85,10 +70,7 @@ def login():
     email = dataDict['email']
     password = dataDict['password']
     
-    query = {'email': email, 'password': password}
-    
-    db = get_db()
-    user = db.users.find_one(query)
+    user = find_user_by_email_and_password(email, password)
     
     print(user)
     
@@ -97,26 +79,29 @@ def login():
     
     identity = {"email":user['email'], "password":user['password']}
     print(identity)
+    print(user)
     refreshToken = create_refresh_token(identity)
     
-    db.users.update_one({
-        '_id': user['_id']
-    },{
-        '$set': {
-            'refreshToken': refreshToken
-        }
-    }, upsert=False)
+    set_user_refreshtoken(user, refreshToken)
     
-    return(refreshToken,200) 
+    return jsonify({'refreshToken': refreshToken})
     
 @bp.route('/refreshExchange', methods=['POST'])
 @jwt_refresh_token_required
 def getAccessTokenAndRefreshRefreshToken():
     
-    print(get_jwt_identity())
+    print('jwt identity ',get_jwt_identity())
     current_user = get_jwt_identity()
-    print(current_user)
-    access_token = create_access_token(identity = current_user)
+    print('current user', current_user)
+    accessToken = create_access_token(identity = current_user)
     refreshToken = create_refresh_token(identity = current_user)
     
-    return jsonify({'access_token': access_token, 'refreshToken':refreshToken})
+    return jsonify({'accessToken': accessToken, 'refreshToken':refreshToken})
+    
+@bp.route('/blacklist', methods=['POST'])
+@jwt_refresh_token_required
+def blacklistRefreshToken():
+    jti = get_raw_jwt()['jti']
+    print ('jti ', jti)
+    insert_blacklist(jti)
+    return ('', 200)

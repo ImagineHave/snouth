@@ -1,1 +1,7 @@
-[]
+[
+  "tests/test_snouth.py::test_registerUser",
+  "tests/test_snouth.py::test_activation",
+  "tests/test_snouth.py::test_userLogon",
+  "tests/test_snouth.py::test_refreshExchange",
+  "tests/test_snouth.py::test_blacklistRefreshToken"
+]
