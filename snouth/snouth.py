@@ -1,6 +1,5 @@
 from flask import Blueprint, request, current_app, request, jsonify
-from .useraccess import find_user_by_email_and_activation, activate_user, create_user, find_user_by_email_and_password, set_user_refreshtoken
-from .blacklistaccess import insert_blacklist
+from .useraccess import *
 import requests
 import random
 import string
@@ -96,12 +95,18 @@ def getAccessTokenAndRefreshRefreshToken():
     accessToken = create_access_token(identity = current_user)
     refreshToken = create_refresh_token(identity = current_user)
     
+    user = find_user_by_email_and_password(current_user['email'], current_user['password'])
+    
+    set_user_refreshtoken(user, refreshToken)
+    
     return jsonify({'accessToken': accessToken, 'refreshToken':refreshToken})
     
 @bp.route('/blacklist', methods=['POST'])
-@jwt_refresh_token_required
 def blacklistRefreshToken():
-    jti = get_raw_jwt()['jti']
-    print ('jti ', jti)
-    insert_blacklist(jti)
+    dataDict = request.get_json()
+    email = dataDict['email']
+    
+    user = find_user_by_email(email)
+    discard_user_refreshToken(user)
+    
     return ('', 200)
